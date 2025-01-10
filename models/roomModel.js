@@ -8,6 +8,10 @@ const roomSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    name: {
+        type: String,
+        required: true,
+    },
     password: {
         type: String,
         required: true,
@@ -15,10 +19,10 @@ const roomSchema = new mongoose.Schema({
     admins: {},
     participants: {},
     directories: [
-        { 
-            type: mongoose.Schema.Types.ObjectId, 
-            ref:  "File"  }
-
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "File"
+        }
     ]
 }, {
     timestamps: true,
