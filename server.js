@@ -1,8 +1,10 @@
 const express = require("express");
 const dotenv = require("dotenv").config();
 const app = express();
+const DBConnection = require("./Config/dbconnection.js")
 const port = process.env.PORT || 8000;
 
+DBConnection();
 app.get('/api/create-room' , (req,res)=>{
     res.status(200).send("Hello");
 })
