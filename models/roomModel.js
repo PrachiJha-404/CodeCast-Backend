@@ -1,4 +1,5 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose"
+
 
 
 //TODO after createing user model add it to admins and participants
@@ -16,8 +17,17 @@ const roomSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    admins: {},
-    participants: {},
+    admins: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        }
+    ],
+    participants: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+        }
+    ],
     directories: [
         {
             type: mongoose.Schema.Types.ObjectId,
