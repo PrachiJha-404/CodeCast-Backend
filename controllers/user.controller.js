@@ -29,31 +29,27 @@ const registerUser = asyncHandler(async (req, res) => {
     // remove password and refresh token field from response
     // check for user creation
     // return res
+    console.log("hiii")
 
-
-    const { uniqueid, name, email, username, password } = req.body
-    //console.log("email: ", email);
+    const { name, email, password } = req.body
+    console.log("email: ", email);
 
     if (
-        [uniqueid, name, email, username, password].some((field) => field?.trim() === "")
+        [name, email, password].some((field) => field?.trim() === "")
     ) {
         throw new ApiError(400, "All fields are required")
     }
 
-    const existedUser = await User.findOne({
-        $or: [{ uniqueid }, { email }]
-    })
+    const existedUser = await User.findOne({ email })
 
     if (existedUser) {
         throw new ApiError(409, "User with email or username already exists")
     }
 
     const user = await User.create({
-        uniqueid,
         name,
         email,
         password,
-        username: username.toLowerCase()
     })
 
     const createdUser = await User.findById(user._id).select(
@@ -140,7 +136,12 @@ const loginUser = asyncHandler(async (req, res) => {
         const { accessToken, refreshToken } = await generateAccessAndRefereshTokens()
         user.accessToken = accessToken,
             user.refreshToken = refreshToken
+            //TODO remove sending password to the frontend
         user.save();
+        const loggedinUser = user.toObject()
+        delete loggedinUser.password
+        delete loggedinUser.refreshToken
+
         const options = {
             httpOnly: true,
             secure: true
@@ -153,7 +154,7 @@ const loginUser = asyncHandler(async (req, res) => {
                 new ApiResponse(
                     200,
                     {
-                        user: loggedInUser, accessToken, refreshToken
+                        user: loggedinUser, accessToken, refreshToken
                     },
                     "User logged In Successfully"
                 )
@@ -216,7 +217,7 @@ const updateName = asyncHandler(async (req, res) => {
             throw new ApiError(401, "User does not exist")
         }
         user_mongo.name = newname
-        await user_mongo.save({validateBeforeSave: false})
+        await user_mongo.save({ validateBeforeSave: false })
         res
             .status(200)
             .json(new ApiResponse(200, {}, "Name Updated Successfully"))
@@ -237,7 +238,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
             throw new ApiError(402, "Invalid Credentials")
         }
         user.password = newPassword
-        await user.save({validateBeforeSave: false})
+        await user.save({ validateBeforeSave: false })
         res.status(200).json(ApiResponse(200, {}, "Password updated successfully"))
         //is is getting encrypted before saving to the database
     } catch (error) {
