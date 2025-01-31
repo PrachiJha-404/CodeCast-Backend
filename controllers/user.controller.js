@@ -52,18 +52,38 @@ const registerUser = asyncHandler(async (req, res) => {
         password,
     })
 
-    const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
-    )
+    // const createdUser = await User.findById(user._id).select(
+    //     "-password -refreshToken"
+    // )
 
-    if (!createdUser) {
-        throw new ApiError(500, "Something went wrong while registering the user")
-    }
+    // if (!createdUser) {
+    //     throw new ApiError(500, "Something went wrong while registering the user")
+    // }
+    const { accessToken, refreshToken } = await generateAccessAndRefereshTokens()
+        user.accessToken = accessToken,
+            user.refreshToken = refreshToken
+        user.save();
+        const loggedinUser = user.toObject()
+        delete loggedinUser.password
+        delete loggedinUser.refreshToken
 
-    return res.status(201).json(
-        new ApiResponse(200, createdUser, "User registered Successfully")
-    )
-
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+        return res
+            .status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json(
+                new ApiResponse(
+                    200,
+                    {
+                        user: loggedinUser, accessToken, refreshToken
+                    },
+                    "User registered and logged In Successfully"
+                )
+            )
 })
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
@@ -136,7 +156,6 @@ const loginUser = asyncHandler(async (req, res) => {
         const { accessToken, refreshToken } = await generateAccessAndRefereshTokens()
         user.accessToken = accessToken,
             user.refreshToken = refreshToken
-            //TODO remove sending password to the frontend
         user.save();
         const loggedinUser = user.toObject()
         delete loggedinUser.password
