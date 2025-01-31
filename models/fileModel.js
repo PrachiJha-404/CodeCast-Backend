@@ -1,4 +1,5 @@
-const mongoose = require("moongose");
+import mongoose from "mongoose"
+
 
 const fileSchema = mongoose.Schema(
     {

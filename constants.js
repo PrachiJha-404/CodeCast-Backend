@@ -1,1 +1,1 @@
-module.exports.DB_NAME = "CodeCast"
+export const DB_NAME = "CodeCast"
