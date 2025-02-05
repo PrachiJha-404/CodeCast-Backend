@@ -1,10 +1,10 @@
 import mongoose from "mongoose"
-
+import bcrypt from "bcrypt"
 
 
 //TODO after createing user model add it to admins and participants
 const roomSchema = new mongoose.Schema({
-    id: {
+    cc_pin: {
         type: String,
         required: true,
         unique: true
@@ -38,4 +38,16 @@ const roomSchema = new mongoose.Schema({
     timestamps: true,
 });
 
+roomSchema.pre("save" ,async (next)=>{
+    if(!this.isModified("password")) next()
+    this.password = await bcrypt.hash(this.password, 10)
+    next();
+})
+
+roomSchema.methods.isPasswordCorrect = async (password)=>{
+    return await bcrypt.compare(this.password , password)
+}
+
 export const Room = mongoose.model("Room", roomSchema);
+
+
