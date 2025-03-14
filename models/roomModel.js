@@ -26,6 +26,7 @@ const roomSchema = new mongoose.Schema({
     participants: [
         {
             type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
         }
     ],
     directories: [
@@ -39,7 +40,8 @@ const roomSchema = new mongoose.Schema({
 });
 
 roomSchema.pre("save" ,async (next)=>{
-    if(!this.isModified("password")) next()
+    if(!this.isModified("password")) next();
+    
     this.password = await bcrypt.hash(this.password, 10)
     next();
 })

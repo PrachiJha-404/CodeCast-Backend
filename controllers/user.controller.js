@@ -8,11 +8,13 @@ import mongoose from "mongoose";
 const generateAccessAndRefereshTokens = async (userId) => {
     try {
         const user = await User.findById(userId)
+        //TODO: findById instead of findOne where IDs are used (room.controller.js)
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
 
         user.refreshToken = refreshToken
-        await user.save({ validateBeforeSave: false })
+        await user.save({ validateBeforeSave: false }) //we dont need to verify if the user changed the pwd or not (refer usermodel pre save) because
+        //user just got created so its stupid to do that :(
         return { accessToken, refreshToken }
 
 
@@ -29,7 +31,7 @@ const registerUser = asyncHandler(async (req, res) => {
     // remove password and refresh token field from response
     // check for user creation
     // return res
-    console.log("hiii")
+    // console.log("hiii")
 
     const { name, email, password } = req.body
     console.log("email: ", email);
@@ -44,6 +46,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
     if (existedUser) {
         throw new ApiError(409, "User with email or username already exists")
+        //TODO: change all errors to APIError instead of throw new error
     }
 
     const user = await User.create({
