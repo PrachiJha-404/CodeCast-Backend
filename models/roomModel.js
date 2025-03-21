@@ -39,15 +39,14 @@ const roomSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-roomSchema.pre("save" ,async (next)=>{
-    if(!this.isModified("password")) next();
-    
+roomSchema.pre("save" ,async function (next){
+    if(!this.isModified("password")) return next();
     this.password = await bcrypt.hash(this.password, 10)
     next();
 })
 
-roomSchema.methods.isPasswordCorrect = async (password)=>{
-    return await bcrypt.compare(this.password , password)
+roomSchema.methods.isPasswordCorrect = async function (password){
+    return await bcrypt.compare(password , this.password)
 }
 
 export const Room = mongoose.model("Room", roomSchema);

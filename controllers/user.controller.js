@@ -8,13 +8,24 @@ import mongoose from "mongoose";
 const generateAccessAndRefereshTokens = async (userId) => {
     try {
         const user = await User.findById(userId)
+        if (!user) {
+            console.error("User not found");
+            return res.status(404).json({ error: "User not found" });
+        }
         //TODO: findById instead of findOne where IDs are used (room.controller.js)
-        const accessToken = user.generateAccessToken()
-        const refreshToken = user.generateRefreshToken()
+
+        const accessToken = await user.generateAccessToken()
+
+
+        const refreshToken = await user.generateRefreshToken()
+   
 
         user.refreshToken = refreshToken
+
+
         await user.save({ validateBeforeSave: false }) //we dont need to verify if the user changed the pwd or not (refer usermodel pre save) because
         //user just got created so its stupid to do that :(
+
         return { accessToken, refreshToken }
 
 
@@ -62,31 +73,33 @@ const registerUser = asyncHandler(async (req, res) => {
     // if (!createdUser) {
     //     throw new ApiError(500, "Something went wrong while registering the user")
     // }
-    const { accessToken, refreshToken } = await generateAccessAndRefereshTokens()
-        user.accessToken = accessToken,
-            user.refreshToken = refreshToken
-        user.save();
-        const loggedinUser = user.toObject()
-        delete loggedinUser.password
-        delete loggedinUser.refreshToken
+    const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id)
+    user.accessToken = accessToken,
+        user.refreshToken = refreshToken
+    user.save();
+    const loggedinUser = user.toObject()
+    delete loggedinUser.password
+    delete loggedinUser.refreshToken
 
-        const options = {
-            httpOnly: true,
-            secure: true
-        }
-        return res
-            .status(200)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", refreshToken, options)
-            .json(
-                new ApiResponse(
-                    200,
-                    {
-                        user: loggedinUser, accessToken, refreshToken
-                    },
-                    "User registered and logged In Successfully"
-                )
+    const options = {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax", // Ensures cookies are sent with WebSockets
+        path: "/",
+    }
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    user: loggedinUser, accessToken, refreshToken
+                },
+                "User registered and logged In Successfully"
             )
+        )
 })
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
@@ -156,7 +169,7 @@ const loginUser = asyncHandler(async (req, res) => {
             throw new ApiError(401, "Email or Password not valid")
         }
 
-        const { accessToken, refreshToken } = await generateAccessAndRefereshTokens()
+        const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id)
         user.accessToken = accessToken,
             user.refreshToken = refreshToken
         user.save();
