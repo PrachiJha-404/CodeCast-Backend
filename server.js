@@ -8,6 +8,8 @@ import { Server } from "socket.io"
 import { verifyJWT } from "./middleware/auth.middleware.js";
 import cookie from "cookie"
 import { createroom, addusertoroom } from "./controllers/room.controller.js";
+import jwt from "jsonwebtoken"
+
 dotenv.config()
 
 const port = process.env.PORT || 8000;
@@ -49,7 +51,9 @@ DBConnection()
         io.on("connection", (socket) => {
             console.log("user connected", socket.id)
             let rawcookies = {};
-            if (socket.handshake.headers['cookie']) { rawcookies = cookie.parse(socket.handshake.headers['cookie']) }
+            if (socket.handshake.headers['cookie']) {
+                rawcookies = cookie.parse(socket.handshake.headers['cookie'])
+            }
             // console.log(rawcookies)
 
             // const accessToken = cookies.accessToken
@@ -58,55 +62,38 @@ DBConnection()
 
             socket.on('join_room', async (data) => {
                 console.log(data)
-                const roomId_if_exists = await addusertoroom(data.cc_pin, data.password, rawcookies.accessToken)
-                if (roomId_if_exists.success) {
-                    socket.join(data.cc_pin)
-                    console.log("user joined room", data.cc_pin);
-                    socket.emit('user_joined');
-                } else {
-                    socket.emit('user_error', roomId_if_exists.error)
-                }
-            })
-            socket.on('create_room', async (data) => {
-                console.log("user created room", data.cc_pin);
-                const roomId_if_exists = await createroom(data.cc_pin, data.password, rawcookies.accessToken, "default")
-                console.log(roomId_if_exists)
-                if (roomId_if_exists.success) {
-                    socket.join(data.cc_pin)
-                    console.log("user joined room", data.cc_pin);
-                    socket.emit('user_joined');
-                } else {
-                    console.log(roomId_if_exists.error)
-                    socket.emit('user_error', roomId_if_exists.error)
+                try {
+                    console.log("hii");
+                    const decodedToken = jwt.verify(rawcookies.accessToken, process.env.ACCESS_TOKEN_SECRET)
+                    console.log("byee");
+                    
+                    if (!data.cc_pin) {
+                        socket.emit('user_error', { error: "cc_pin is required" })
 
+                    }
+                    if (!decodedToken) {
+                        socket.emit('user_error', { error: "Unable to verify jwt" })
+                    }
+                    socket.join(data.cc_pin)
+                    console.log("user joined room", data.cc_pin);
+                    socket.emit('user_joined')
+                } catch (error) {
+                    console.log(error)
+                    socket.emit('user_error', { error: error })
                 }
             })
             socket.on('code_message', (data) => {
                 console.log("code got", data)
-                // console.log(data.cc_pin)
                 const usersInRoom = io.sockets.adapter.rooms.get(data.cc_pin);
                 console.log("users in room", usersInRoom, "cc_pin", data.cc_pin)
-                // socket.to('kb12gsla').emit('code', { code: "are you able to recive this plss" })
                 socket.to(data.cc_pin).emit('code', { code: data.code })
-                // socket.to(data.cc_pin).emit('hi')
-                // console.log("Room name type:", typeof data.cc_pin);
-                // socket.to(data.cc_pin).emit('code', { code: data.code })
-                // io.to(data.cc_pin).emit('code', { code: data.code })
-                // socket.in(data.cc_pin).emit('code', { code: data.code })
-                // socket.emit('code', { code: "Hello Direct test" })
-                // io.emit('hi', { code: data.code })
             })
-            // socket.emit('hi',{mess:"hello"})
         })
 
         server.on("error", (err) => {
             console.log("Error", err)
             throw err
         })
-        // app.on("error", (err) => {
-        //     console.log("Error", err)
-        //     throw err
-        // })
     })
     .catch((err) => {
         console.log("Database Connection failed", err)
@@ -117,9 +104,11 @@ server.listen(port, () => {
     console.log("Server running on port", port)
 })
 import userRouter from "./routes/user.routes.js";
+import roomRouter from "./routes/room.routes.js"
 // import { Socket } from "node:dgram";
 
 app.use("/users", userRouter)
+app.use("/room", roomRouter)
 
 
 

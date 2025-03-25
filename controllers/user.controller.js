@@ -167,7 +167,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
         const ispasswordcorrect = await user.isPasswordCorrect(password)
         if (!ispasswordcorrect) {
-            throw new ApiError(401, "Email or Password not valid")
+            throw new ApiError(402, "Email or Password not valid")
         }
 
         const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id)
@@ -196,7 +196,7 @@ const loginUser = asyncHandler(async (req, res) => {
                 )
             )
     } catch (error) {
-        throw new ApiError(400, "Something went worng while loging in the user")
+        throw new ApiError(500, "Something went worng while loging in the user")
     }
 })
 
@@ -228,7 +228,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 
     } catch (error) {
-        throw new ApiError(200, "Something went worng when logging the user out")
+        throw new ApiError(500, "Something went worng when logging the user out")
     }
 })
 const getCurrentUser = asyncHandler(async (req, res) => {
@@ -250,7 +250,7 @@ const updateName = asyncHandler(async (req, res) => {
         const user_mongo = await User.findById(user._id)
 
         if (!user_mongo) {
-            throw new ApiError(401, "User does not exist")
+            throw new ApiError(404, "User does not exist")
         }
         user_mongo.name = newname
         await user_mongo.save({ validateBeforeSave: false })
@@ -258,7 +258,7 @@ const updateName = asyncHandler(async (req, res) => {
             .status(200)
             .json(new ApiResponse(200, {}, "Name Updated Successfully"))
     } catch (error) {
-        throw new ApiError(400, "Something happened while updating name")
+        throw new ApiError(500, "Something happened while updating name")
     }
 })
 
@@ -267,7 +267,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
         const { oldPassword, newPassword } = req.body
         const user = await User.findById(req.user._id)
         if (!user) {
-            throw new ApiError(401, "User does not exist")
+            throw new ApiError(404, "User does not exist")
         }
         const ispasswordCorrect = user.isPasswordCorrect(oldPassword)
         if (!ispasswordCorrect) {
@@ -278,7 +278,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
         res.status(200).json(ApiResponse(200, {}, "Password updated successfully"))
         //is is getting encrypted before saving to the database
     } catch (error) {
-        throw new ApiError(400, "Something went wrong while updating password")
+        throw new ApiError(500, "Something went wrong while updating password")
     }
 })
 //TODO Login, logout, change password, update account details, get user rooms
