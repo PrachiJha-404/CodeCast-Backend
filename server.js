@@ -23,10 +23,10 @@ app.use(express.static("public"))
 
 const server = createServer(app)
 const io = new Server(server, {
-    cookie: true,
     cors: {
         origin: "http://localhost:5173",
-        credentials: true
+        credentials: true,
+        methods: ["GET", "POST"],
 
     }
 })
@@ -35,7 +35,6 @@ DBConnection()
         // app.listen(port, () => {
         //     console.log("Server running on port", port)
         // })
-        //todo: socket io for join room and create room is left (only database stuff is happening)
         // io.engine.on("headers", (headers,request)=>{
         //     if(!request.headers.cookie) return
         //     const cookie = parse(request.headers.cookie)
@@ -63,7 +62,9 @@ DBConnection()
                 if (roomId_if_exists.success) {
                     socket.join(data.cc_pin)
                     console.log("user joined room", data.cc_pin);
-
+                    socket.emit('user_joined');
+                } else {
+                    socket.emit('user_error', roomId_if_exists.error)
                 }
             })
             socket.on('create_room', async (data) => {
@@ -73,15 +74,29 @@ DBConnection()
                 if (roomId_if_exists.success) {
                     socket.join(data.cc_pin)
                     console.log("user joined room", data.cc_pin);
-
+                    socket.emit('user_joined');
                 } else {
                     console.log(roomId_if_exists.error)
+                    socket.emit('user_error', roomId_if_exists.error)
+
                 }
             })
-            socket.on('code_message', (cc_pin, code) => {
-                io.to(cc_pin).emit('code', code)
+            socket.on('code_message', (data) => {
+                console.log("code got", data)
+                // console.log(data.cc_pin)
+                const usersInRoom = io.sockets.adapter.rooms.get(data.cc_pin);
+                console.log("users in room", usersInRoom, "cc_pin", data.cc_pin)
+                // socket.to('kb12gsla').emit('code', { code: "are you able to recive this plss" })
+                socket.to(data.cc_pin).emit('code', { code: data.code })
+                // socket.to(data.cc_pin).emit('hi')
+                // console.log("Room name type:", typeof data.cc_pin);
+                // socket.to(data.cc_pin).emit('code', { code: data.code })
+                // io.to(data.cc_pin).emit('code', { code: data.code })
+                // socket.in(data.cc_pin).emit('code', { code: data.code })
+                // socket.emit('code', { code: "Hello Direct test" })
+                // io.emit('hi', { code: data.code })
             })
-
+            // socket.emit('hi',{mess:"hello"})
         })
 
         server.on("error", (err) => {

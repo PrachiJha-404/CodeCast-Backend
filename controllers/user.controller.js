@@ -18,9 +18,10 @@ const generateAccessAndRefereshTokens = async (userId) => {
 
 
         const refreshToken = await user.generateRefreshToken()
-   
+
 
         user.refreshToken = refreshToken
+        user.accessToken = accessToken
 
 
         await user.save({ validateBeforeSave: false }) //we dont need to verify if the user changed the pwd or not (refer usermodel pre save) because
@@ -74,9 +75,9 @@ const registerUser = asyncHandler(async (req, res) => {
     //     throw new ApiError(500, "Something went wrong while registering the user")
     // }
     const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id)
-    user.accessToken = accessToken,
-        user.refreshToken = refreshToken
-    user.save();
+    user.accessToken = accessToken
+    user.refreshToken = refreshToken
+    await user.save();
     const loggedinUser = user.toObject()
     delete loggedinUser.password
     delete loggedinUser.refreshToken
