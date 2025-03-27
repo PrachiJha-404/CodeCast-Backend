@@ -39,16 +39,20 @@ const roomSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-roomSchema.pre("save" ,async (next)=>{
+//changed the way 'this' was being used in arrow functions in both of these Mongoose Middlewares
+
+roomSchema.pre("save" ,async function (next) {
     if(!this.isModified("password")) next();
     
     this.password = await bcrypt.hash(this.password, 10)
     next();
-})
+});
 
-roomSchema.methods.isPasswordCorrect = async (password)=>{
-    return await bcrypt.compare(this.password , password)
-}
+roomSchema.methods.isPasswordCorrect = async function(password) {
+    return await bcrypt.compare(password , this.password)
+};
+
+//bcrypt.compare(plainTextPassword, hashedPassword) - this is the right syntax it seems so swapping this.password and password
 
 export const Room = mongoose.model("Room", roomSchema);
 
