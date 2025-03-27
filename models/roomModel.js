@@ -39,11 +39,8 @@ const roomSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-//changed the way 'this' was being used in arrow functions in both of these Mongoose Middlewares
-
-roomSchema.pre("save" ,async function (next) {
-    if(!this.isModified("password")) next();
-    
+roomSchema.pre("save" ,async function (next){
+    if(!this.isModified("password")) return next();
     this.password = await bcrypt.hash(this.password, 10)
     next();
 });
