@@ -2,7 +2,7 @@ import mongoose from "mongoose"
 import bcrypt from "bcrypt"
 
 
-//TODO after createing user model add it to admins and participants
+
 const roomSchema = new mongoose.Schema({
     cc_pin: {
         type: String,
