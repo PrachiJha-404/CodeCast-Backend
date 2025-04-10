@@ -2,7 +2,7 @@ import mongoose from "mongoose"
 import bcrypt from "bcrypt"
 
 
-//TODO after createing user model add it to admins and participants
+
 const roomSchema = new mongoose.Schema({
     cc_pin: {
         type: String,
@@ -43,11 +43,13 @@ roomSchema.pre("save" ,async function (next){
     if(!this.isModified("password")) return next();
     this.password = await bcrypt.hash(this.password, 10)
     next();
-})
+});
 
-roomSchema.methods.isPasswordCorrect = async function (password){
+roomSchema.methods.isPasswordCorrect = async function(password) {
     return await bcrypt.compare(password , this.password)
-}
+};
+
+//bcrypt.compare(plainTextPassword, hashedPassword) - this is the right syntax it seems so swapping this.password and password
 
 export const Room = mongoose.model("Room", roomSchema);
 
