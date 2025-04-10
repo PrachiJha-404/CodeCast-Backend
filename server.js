@@ -10,12 +10,18 @@ import cookie from "cookie"
 import { createroom, addusertoroom } from "./controllers/room.controller.js";
 import jwt from "jsonwebtoken"
 
+import userRouter from "./routes/user.routes.js";
+import roomRouter from "./routes/room.routes.js"
+// import { Socket } from "node:dgram";
+
+
+
 dotenv.config()
 
 const port = process.env.PORT || 8000;
 const app = express();
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: process.env.FRONTEND_CONNECTION_STRING,
     credentials: true
 }))
 app.use(cookieParser())
@@ -23,10 +29,17 @@ app.use(express.json({ limit: "16kb" }))
 app.use(express.urlencoded({ extended: true, limit: "16kb" }))
 app.use(express.static("public"))
 
+app.use("/users", userRouter)
+app.use("/room", roomRouter)
+
+app.get("/", (req, res) => {
+    res.send("Server is alive and kicking. Unlike your patience.")
+})
+
 const server = createServer(app)
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: process.env.FRONTEND_CONNECTION_STRING,
         credentials: true,
         methods: ["GET", "POST"],
 
@@ -103,12 +116,7 @@ DBConnection()
 server.listen(port, () => {
     console.log("Server running on port", port)
 })
-import userRouter from "./routes/user.routes.js";
-import roomRouter from "./routes/room.routes.js"
-// import { Socket } from "node:dgram";
 
-app.use("/users", userRouter)
-app.use("/room", roomRouter)
 
 
 
