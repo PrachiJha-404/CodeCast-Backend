@@ -37,7 +37,8 @@ const generateAccessAndRefereshTokens = async (userId) => {
 
 const generateNewAccessToken = async (userId) => {
     try {
-        const user = User.findById(userId)
+        const user = await User.findById(userId)
+        console.log(user)
         if (!user) {
             console.log("User does not exist")
             return res.status(404).json({ error: "User not found" });
@@ -162,7 +163,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             .json(
                 new ApiResponse(
                     200,
-                    { accessToken, refreshToken: newRefreshToken },
+                    { accessToken },
                     "Access token refreshed"
                 )
             )
