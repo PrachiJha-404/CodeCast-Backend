@@ -80,6 +80,7 @@ const createroom = asyncHandler(async (req, res) => {
     //then we have to add the room to the database and also in the admin part add the user and also in the user add the room
     try {
         //if name is not sent then it will be set to default
+        console.log("creating the room")
         let { cc_pin, password, name="defalut" } = req.body
         if(!cc_pin){
             throw new ApiError(400,"cc_pin is required");

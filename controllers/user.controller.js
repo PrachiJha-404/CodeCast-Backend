@@ -35,6 +35,26 @@ const generateAccessAndRefereshTokens = async (userId) => {
     }
 }
 
+const generateNewAccessToken = async (userId) => {
+    try {
+        const user = User.findById(userId)
+        if (!user) {
+            console.log("User does not exist")
+            return res.status(404).json({ error: "User not found" });
+        }
+        const accessToken = await user.generateAccessToken()
+        user.accessToken = accessToken
+        await user.save({ validateBeforeSave: false }) //we dont need to verify if the user changed the pwd or not (refer usermodel pre save) because
+        //user just got created so its stupid to do that :(
+
+        return { accessToken }
+
+    } catch (error) {
+        console.log(error)
+        throw new ApiError(500, "SOmething went wrong while generating the access token")
+    }
+}
+
 const registerUser = asyncHandler(async (req, res) => {
     // get user details from frontend
     // validation - not empty
@@ -118,8 +138,9 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         //contains the payload that is encrypted in the token
 
         const user = await User.findById(decodedToken?._id)
-
+        console.log("hello", user)
         if (!user) {
+
             throw new ApiError(401, "Invalid refresh token")
         }
 
@@ -133,12 +154,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             secure: true
         }
 
-        const { accessToken, newRefreshToken } = await generateAccessAndRefereshTokens(user._id)
+        const { accessToken } = await generateNewAccessToken(user._id)
 
         return res
             .status(200)
             .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", newRefreshToken, options)
             .json(
                 new ApiResponse(
                     200,

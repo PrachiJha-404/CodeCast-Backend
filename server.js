@@ -77,6 +77,7 @@ DBConnection()
                     socket.join(data.cc_pin)
                     console.log("user joined room", data.cc_pin);
                     socket.emit('user_joined')
+                    socket.to(data.cc_pin).emit('code', { code: data.code })
                 } catch (error) {
                     console.log(error)
                     socket.emit('user_error', { error: error })
@@ -87,6 +88,9 @@ DBConnection()
                 const usersInRoom = io.sockets.adapter.rooms.get(data.cc_pin);
                 console.log("users in room", usersInRoom, "cc_pin", data.cc_pin)
                 socket.to(data.cc_pin).emit('code', { code: data.code })
+            })
+            socket.on('disconnect',()=>{
+                console.log("User Disconnected",socket.id)
             })
         })
 
