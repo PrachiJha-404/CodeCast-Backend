@@ -71,3 +71,14 @@ git clone https://github.com/PrachiJha-404/CodeCast-Backend.git
 cd CodeCast-Backend
 npm install
 npm run dev
+
+```
+
+## Funny Promo Ad
+
+Before you dive in — here's a light-hearted ad we made to show what **CodeCast** is all about:
+
+👉 [Watch our Funny CodeCast Ad](https://drive.google.com/file/d/1esAisrIpIluYv5bQEVe0BpeKD5pPW63E/view)
+
+_(Real coding pain meets real-time collaboration. Drama included.)_
+ 
